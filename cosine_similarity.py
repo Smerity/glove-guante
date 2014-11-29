@@ -4,11 +4,16 @@ import numpy as np
 
 if __name__ == '__main__':
   print 'Loading word vectors...'
-  words = {}
-  for line in sys.stdin:
+  wordvecs = None
+  wordlist = []
+  for i, line in enumerate(sys.stdin):
     word, vec = line.strip().split(' ', 1)
     vec = map(float, vec.split())
-    words[word] = np.array(vec, dtype=np.float64)
+    if wordvecs is None:
+      wordvecs = np.ones((400000, len(vec)), dtype=np.float)
+    wordvecs[i] = vec
+    wordlist.append(word)
+  words = dict((k, wordvecs[v]) for v, k in enumerate(wordlist))
 
   tests = [('he', words['he']), ('she', words['she'])]
   tests = [
@@ -19,13 +24,12 @@ if __name__ == '__main__':
       ('king-man+woman', words['king'] - words['man'] + words['woman']),
       ('queen-female+male', words['queen'] - words['female'] + words['male']),
       ('queen-woman+man', words['queen'] - words['woman'] + words['man']),
-      ('thinking-think+fight', words['thinking'] - words['think'] + words['fight']),
+      ('plane-air+rail', words['train'] - words['air'] + words['rail']),
   ]
   for test, tvec in tests:
     results = []
     print '=-=-' * 10
     print 'Testing {}'.format(test)
-    for word in words:
-      res = np.dot(tvec, words[word]) / np.linalg.norm(tvec) / np.linalg.norm(words[word])
-      results.append((res, word))
+    res = np.dot(wordvecs, tvec) / np.linalg.norm(tvec) / np.linalg.norm(wordvecs, axis=1)
+    results = zip(res, wordlist)
     print '\n'.join([w for _, w in sorted(results, reverse=True)[:20]])
