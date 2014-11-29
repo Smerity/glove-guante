@@ -52,6 +52,7 @@ type StringFloatTuple struct {
 	Value float64
 }
 
+// Add sorting by the value or a StringFloatTuple
 type ByValue []*StringFloatTuple
 
 func (r ByValue) Len() int           { return len(r) }
@@ -63,6 +64,7 @@ var words map[string][]float64
 func main() {
 	words := make(map[string][]float64)
 
+	// Load the word vectors from a gzipped input file, passed in by the first command line argument
 	fn := os.Args[1]
 	f, _ := os.Open(fn)
 	gz, _ := gzip.NewReader(f)
@@ -70,6 +72,7 @@ func main() {
 	defer f.Close()
 	fscanner := bufio.NewScanner(gz)
 	fmt.Println("Loading", fn, "...")
+	//
 	for fscanner.Scan() {
 		splits := strings.SplitN(fscanner.Text(), " ", 2)
 		word := splits[0]
@@ -82,13 +85,26 @@ func main() {
 	}
 	fmt.Println("Loaded", len(words))
 
+	// Allow the user to query in an interpreter style interface
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf(">>> ")
 	for scanner.Scan() {
-
 		testWords := strings.Split(scanner.Text(), " ")
-		var tvec []float64
 		fmt.Println("=-=-=-=-=")
+		// Ensure all the words are in the vocabulary
+		notInVocab := make([]string, 0)
+		for _, word := range testWords {
+			if _, ok := words[word]; !ok {
+				notInVocab = append(notInVocab, word)
+			}
+		}
+		if len(notInVocab) > 0 {
+			fmt.Println("Words not found in the vocabulary:", notInVocab)
+			fmt.Printf(">>> ")
+			continue
+		}
+		// Generate the test vector to compare against
+		var tvec []float64
 		if len(testWords) == 1 {
 			tvec = words[testWords[0]]
 		} else if len(testWords) == 3 {
@@ -96,6 +112,7 @@ func main() {
 			tvec = VAdd(VSub(words[testWords[0]], words[testWords[1]]), words[testWords[2]])
 		} else {
 			fmt.Println("Testing only works for one or three words")
+			fmt.Printf(">>> ")
 			continue
 		}
 		//
@@ -105,12 +122,12 @@ func main() {
 			sim := VDot(wvec, tvec) / VNorm(tvec) / VNorm(wvec)
 			results = append(results, &StringFloatTuple{word, sim})
 		}
-
+		// Sort the results and return the top 10 to the user
 		sort.Sort(results)
 		for i := 0; i < 10; i++ {
 			fmt.Println(results[i].Key, results[i].Value)
 		}
-
+		//
 		fmt.Printf(">>> ")
 	}
 }
