@@ -62,14 +62,15 @@ var words map[string][]float64
 func main() {
 	words := make(map[string][]float64)
 
-	f, _ := os.Open("glove.6B.50d.txt")
+	fn := os.Args[1]
+	f, _ := os.Open(fn)
 	fscanner := bufio.NewScanner(f)
-	fmt.Println("Loading...")
+	fmt.Println("Loading", fn, "...")
 	for fscanner.Scan() {
 		splits := strings.SplitN(fscanner.Text(), " ", 2)
 		word := splits[0]
 		nums := strings.Split(splits[1], " ")
-		vec := make([]float64, 50)
+		vec := make([]float64, len(nums))
 		for i, n := range nums {
 			vec[i], _ = strconv.ParseFloat(n, 64)
 		}
