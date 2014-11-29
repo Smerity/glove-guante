@@ -87,12 +87,17 @@ func main() {
 	for scanner.Scan() {
 
 		testWords := strings.Split(scanner.Text(), " ")
-		if len(testWords) != 3 {
-			fmt.Println("Testing only works for three words")
-		}
+		var tvec []float64
 		fmt.Println("=-=-=-=-=")
-		fmt.Println("Finding similar words for", testWords[0], "-", testWords[1], "+", testWords[2])
-		tvec := VAdd(VSub(words[testWords[0]], words[testWords[1]]), words[testWords[2]])
+		if len(testWords) == 1 {
+			tvec = words[testWords[0]]
+		} else if len(testWords) == 3 {
+			fmt.Println("Finding similar words for", testWords[0], "-", testWords[1], "+", testWords[2])
+			tvec = VAdd(VSub(words[testWords[0]], words[testWords[1]]), words[testWords[2]])
+		} else {
+			fmt.Println("Testing only works for one or three words")
+			continue
+		}
 		//
 		var results ByValue
 		for word, wvec := range words {
