@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"compress/gzip"
 	"fmt"
 	"math"
 	"os"
@@ -64,7 +65,10 @@ func main() {
 
 	fn := os.Args[1]
 	f, _ := os.Open(fn)
-	fscanner := bufio.NewScanner(f)
+	gz, _ := gzip.NewReader(f)
+	defer gz.Close()
+	defer f.Close()
+	fscanner := bufio.NewScanner(gz)
 	fmt.Println("Loading", fn, "...")
 	for fscanner.Scan() {
 		splits := strings.SplitN(fscanner.Text(), " ", 2)
